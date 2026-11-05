@@ -2,7 +2,8 @@
 
 **Project:** CPE 334 EN-037 DoubleP · **Theme:** 5, Workflow and Approval System  
 **Product name:** FlowApprove (team proposal; not course-mandated)  
-**Status:** Draft for pair review. No requirement or design decision below is team-approved unless explicitly marked course-required.
+**Status:** Draft for pair review. No requirement or design decision below is team-approved unless explicitly marked course-required.  
+**Team:** Thira Rungruangkaset (GitHub: HolyThiccDaddy, student ID 67070503419) and Ashira Sansoda (GitHub: osizk, student ID 67070503445).
 
 ## 1. Problem and context
 
@@ -72,7 +73,7 @@ Out of scope in this baseline proposal: real procurement/payment, inventory, ext
 | D-04 | Which currency, decimal scale and amount maximum? | Decimal storage; no limit invented. | Choose synthetic domain rules and boundary tests. |
 | D-05 | How many approval stages? | One stage in S1; additional stage is optional. | Decide whether FR-08 belongs in baseline; if yes, define ordering and rejection semantics. |
 | D-06 | Which stack? | React + TypeScript, Node + TypeScript, PostgreSQL proposed. | Pair confirms stack before freezing SDS/contracts. |
-| D-07 | Both students' full names for PDF title page? | IDs and GitHub handles are known; full legal/course display names are not. | Confirm names before assembling the PDF. |
+
 
 ## 6. Change control
 
