@@ -20,7 +20,7 @@ The plan distinguishes course requirements from team proposals and unapproved ch
 - **Deliverable 2 and Lab 7:** 29 Nov — Sprint 2 completion, Sprint 3 progress and maintenance.
 - **Final Project Delivery:** 13 Dec — completed, verified release, report and video.
 
-The dedicated Final handout and master specification disagree on the video limit and point split. See the open question in the plan; use a four-minute target until the instructor/TA clarifies it.
+The Final handout is internally inconsistent on the video limit (10 minutes in section 2, 4 minutes in section 3.5), and its points differ from the master specification. See the open question in the plan; use a four-minute target until the instructor/TA clarifies it.
 
 ## Next team decisions
 
