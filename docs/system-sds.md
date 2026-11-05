@@ -1,82 +1,95 @@
-# System-Level Software Design Specification (draft)
+# System-Level SDS — Issue #1 review candidate
 
-**Status:** Proposed architecture for pair review. No stack or schema is approved or implemented yet.
+**Status:** Selected baseline proposal for teammate review, 5 Nov 2026. No implemented stack/schema or passing verification is claimed. Canonical decisions: [SRS](srs.md), D-01–06. Values below are reviewable design choices, not course-mandated limits.
 
-## 1. Architecture and boundaries
+## 1. Architecture and responsibilities
 
-Proposed modular monolith:
+Browser React/TypeScript UI → Node.js/TypeScript JSON API → persistent PostgreSQL database. Use a modular monolith. Proposed tooling for Issue #2: Vite, Express, Prisma migrations, Argon2id, Vitest/Supertest and Playwright. Issue #2 checks compatible versions, locks dependencies and validates commands; no specific version is selected here.
 
-`Browser UI → JSON API/application layer → PostgreSQL`
+UI renders server identity and role-scoped views; it cannot choose trusted actor/assignment/state. API validates inputs and enforces session, role, ownership, assignment, state and self-approval. PostgreSQL provides exact decimal storage, foreign keys and atomic request/decision/history writes.
 
-- **UI:** React + TypeScript. Renders role-scoped views, validation and request state. It never decides the user's identity or permission.
-- **API/application:** Node.js + TypeScript. Derives identity from the server session, validates requests, enforces role/owner/assignment/state rules and performs transactions.
-- **Database:** PostgreSQL with migration-managed schema and synthetic seed users/data. Constraints backstop uniqueness and referential integrity.
-- **Deployment:** document environment and Docker suitability now. Actual Docker, CI/CD and GCP setup are Lab 5; not a Deliverable 1 prerequisite.
+## 2. Data model and migrations
 
-Stack is a proposal; D-06 must be resolved by the pair before freezing contracts.
-
-## 2. Data model proposal
-
-| Entity | Main fields and links | Constraints / purpose |
+| Entity | Proposed fields/types | Constraints and responsibilities |
 | --- | --- | --- |
-| User | id, displayName, email, passwordHash, role, active | email unique; role is server controlled. Sprint 1 uses seeded Requester or Reviewer accounts. |
-| Request | id, requesterId → User, assignedReviewerId → User, title, purpose, estimatedAmount DECIMAL, currency, status, submittedAt, createdAt, updatedAt, version | Owner and assigned Reviewer are explicit; amount is decimal; indexes proposed for requester/status and reviewer/status. |
-| Decision | id, requestId → Request, reviewerId → User, action, reason, decidedAt | Stores approve/reject/return event; reviewer authorization checked in transaction. |
-| RequestEvent | id, requestId → Request, actorId → User, eventType, fromStatus, toStatus, occurredAt, metadata | Append-only history for submission, decision and later resubmission. |
-| RequestRevision (later, optional) | id, requestId → Request, revisionNo, title, purpose, estimatedAmount, submittedAt | Preserves prior submitted values if D-02 selects version snapshots. |
+| User | id UUID, displayName VARCHAR(120), email VARCHAR(254), passwordHash TEXT, role REQUESTER/REVIEWER, active BOOLEAN, defaultReviewerId nullable UUID→User, createdAt TIMESTAMPTZ | Unique normalized lowercase email; server-controlled role and mapping. Mapping eligibility checked at submission. One role/account in S1. |
+| Session | id UUID, tokenHash CHAR(64), csrfToken CHAR(64), userId UUID→User, createdAt/expiresAt/revokedAt TIMESTAMPTZ | Unique authentication-token hash; raw authentication token never stored. Separate random CSRF token is retained server-side for current-user retrieval; it alone cannot authenticate. Index user/expiry. |
+| Request | id UUID, requesterId UUID→User, assignedReviewerId UUID→User, title VARCHAR(120), purpose VARCHAR(2000), estimatedAmount NUMERIC(12,2), currency CHAR(3), status enum, version INTEGER, submittedAt/createdAt/updatedAt TIMESTAMPTZ | Non-null owner/assignment; check owner != assigned reviewer, amount 0.01–1000000.00 and THB; version starts 0. Index requester/date/id and reviewer/status/date/id. |
+| Decision | id UUID, requestId UUID→Request, reviewerId UUID→User, action APPROVE/REJECT, reason nullable VARCHAR(1000), decidedAt TIMESTAMPTZ | Unique requestId for S1's single terminal decision; reject requires trimmed reason. Actor equals authorized assigned Reviewer. |
+| RequestEvent | id UUID, requestId UUID→Request, actorId UUID→User, eventType SUBMITTED/APPROVED/REJECTED, fromStatus nullable enum, toStatus enum, reason nullable VARCHAR(1000), occurredAt TIMESTAMPTZ | Append-only through application; submission plus exactly one terminal event in S1. Order occurredAt/id; index request/time/id. |
 
-Use database transactions so a decision, state update and history record either all commit or all roll back. Consider a version/conditional update to reject concurrent decisions. The exact uniqueness/locking strategy belongs in the contract after stack selection.
+Use RESTRICT for domain references to avoid accidental history deletion. State names are PENDING_REVIEW, APPROVED, REJECTED. No draft/edit/delete endpoint or history-update endpoint exists in S1.
 
-## 3. Sprint 1 state and permissions
+Migrations in server/prisma/migrations create the schema, constraints and indexes. Normal setup applies committed migrations; do not reset an existing database. Reproducible synthetic seed: at least two Requesters and two Reviewers, deterministic identities/mappings and locally supplied initial passwords; reruns create missing records without overwriting changed credentials/history. Test edge mappings are isolated fixtures, not normal demo accounts.
 
-Proposed statuses: `PENDING_REVIEW`, `APPROVED`, `REJECTED`. A draft state before submission is optional and must be agreed. Only PENDING_REVIEW accepts a terminal decision. Invalid/repeated/concurrent decisions produce a safe conflict response and no extra decision event.
+S2 requires a reviewed additive migration: preserve immutable submission snapshots/revisions, add RETURNED/resubmission cycles, and revise S1's unique terminal-decision constraint so history survives multiple cycles. Do not reuse S1 uniqueness without analyzing this change.
+
+Design rationale: exact decimal avoids floating-point money drift; transactions/conditional updates prevent split decision/history; explicit owner/assignment enables backend authorization and indexable scoped queries.
+
+## 3. Submission and decision transactions
+
+Submission derives requester from the active session, reads the controlled mapping and verifies active Reviewer role and different ID. No eligible mapping yields 422 NO_ELIGIBLE_REVIEWER with no Request/Event writes. Otherwise create pending request plus one SUBMITTED event atomically.
+
+Decision transaction rechecks identity/role/assignment/self-approval and conditionally changes status where id matches, status=PENDING_REVIEW and version=expectedVersion. Exactly one row must change; increment version once, insert Decision and matching event in the same transaction. Concurrent losers/repeats yield 409 INVALID_TRANSITION with no partial changes. Roll back on any write failure. Unique Decision.requestId backstops duplicate terminal outcomes.
+
+The no-self guard must still be tested with a controlled in-memory/unit input where requester=reviewer, even though normal schema/seed blocks that state. Never weaken production constraints just to create a test fixture.
+
+## 4. Role and record permissions
 
 | Operation | Requester | Reviewer |
 | --- | --- | --- |
-| Login/current identity/logout | Own account/session | Own account/session |
-| Submit request | Yes; server sets requester ID | No |
-| Read request/detail/history | Own only | Assigned only |
-| Approve/reject | No | Assigned only; requester ID must differ from actor ID |
-| Return (S2 proposal) | No | Assigned only |
-| Edit/resubmit returned request (S2 proposal) | Own only | No |
-| Decision summary (S3 proposal) | No | Authorized scope only |
+| Login/current user/logout | Own session | Own session |
+| Submit | Owner from session only | 403 FORBIDDEN |
+| List/detail/history | Owned requests only | Assigned requests only |
+| Approve/reject | 403 FORBIDDEN | Assigned, pending, not self |
+| Edit/delete submitted fields | No endpoint | No endpoint |
 
-Backend checks are authoritative. UI controls only reflect allowed actions. Request bodies never set requesterId, acting user ID, role or trusted assignment.
+All API reads/writes authenticate first. A wrong role for an operation yields 403. A missing or out-of-scope request yields the same 404 REQUEST_NOT_FOUND, without private fields. Lists scope in SQL before pagination; never fetch all records and filter only in UI.
 
-## 4. Session and credential handling
+## 5. Authentication and security proposal
 
-Proposed server-managed session in secure, HTTP-only, same-site cookie; TLS in deployed environments; expiry and logout invalidation documented in the feature contract. Passwords use a standard adaptive password-hashing function; plaintext is never stored. Current-user endpoint returns only safe identity/role fields. Keep secrets in local environment or deployment secret storage, never source control or UI bundles.
+Use a random 256-bit opaque session cookie (flowapprove_session), HTTP-only, SameSite=Lax, path=/; Secure in deployed HTTPS, explicitly disabled only for local HTTP development. Store only its SHA-256 hash. Session absolute lifetime is 8 hours, no sliding renewal; enforce active user and expiry/revocation each request. Passwords use Argon2id; login errors do not reveal account existence. Password inputs: 12–128 characters, not trimmed; seed obtains initial values locally, never embeds real passwords.
 
-## 5. API conventions (proposed)
+GET /api/session returns safe user plus the session-bound CSRF token (not an authentication credential); UI keeps it only in memory and sends X-CSRF-Token on authenticated writes. Store this separate random token in the protected server session so it can be returned again after page reload; compare using a timing-safe method. Require an allowlisted Origin on browser mutations including login, and session-bound CSRF validation for authenticated mutations. API permits credentials only from the configured UI origin; never wildcard credentials. Redact cookies, passwords, connection strings and tokens from logs/evidence. Production uses TLS. Bound JSON body size to 32 KiB.
 
-Prefix: `/api`; JSON request/response; authenticated actor comes only from session.
+Logout revokes the presented session and expires the cookie. No active session: return 204 and clear stale cookie without exposing identity. With a valid session, require Origin/CSRF before revocation; other sessions are not implicitly revoked.
 
-| Method/path | Purpose | Expected responses |
-| --- | --- | --- |
-| POST /api/session | Login | 200; 401 invalid credentials; safe generic error |
-| GET /api/session | Current identity | 200; 401 |
-| DELETE /api/session | Logout | 204; safe idempotent policy to specify |
-| POST /api/requests | Submit | 201; 401; 403; 422 invalid input or no eligible assignment |
-| GET /api/requests | Role-scoped list | 200; 401 |
-| GET /api/requests/:id | Own/assigned detail and history | 200; safe 403/404 |
-| POST /api/requests/:id/decisions | Approve/reject | 200; 401; 403/404; 409 invalid/concurrent state; 422 invalid reason |
+Authentication is tested in F-01. Rate-limit public login in the implementation with a standard maintained mechanism and document its verified settings before release; do not fabricate a tested configuration in this planning baseline.
 
-Error body proposal: stable `code`, safe human-readable `message`, optional field errors. Never return SQL, stack traces, storage paths, hashes or secrets. Finalize exact status/body shapes in feature contracts.
+## 6. Shared API conventions
 
-## 6. UI structure and shared states
+Use JSON, UUID IDs, UTC ISO-8601 timestamps; display Asia/Bangkok. Money travels as decimal strings and serializes with two fractional digits. See contracts for exact bodies.
 
-- Login.
-- Requester: own request list, create form, request detail/history.
-- Reviewer: assigned queue, request detail, decision form.
-- Current user/role comes from API identity, not a role selector.
-- All views need loading, empty, validation, request failure/retry, submitting and success states.
-- Disable duplicate submission while pending; show safe error when a state changed concurrently.
-- Review responsive behavior at 375, 768 and 1280 CSS px, including focus and keyboard interaction.
+Success objects use {user,csrfToken}, {request}, {requests,nextCursor} as appropriate. Errors use {error:{code,message,fields?}} with safe messages and no stack/SQL/internal paths. Only field-validation errors include fields (field→message).
 
-## 7. Configuration and delivery design
+Order: authentication → role/record scope → CSRF/Origin for authenticated writes → input/state validation → transaction. Login is the unauthenticated Origin-checked exception.
 
-Proposed environment names: DATABASE_URL, SESSION_SECRET, PORT, UI_API_BASE_URL. Add a placeholder-only example when implementation begins. Apply database migrations in a documented order; seed only synthetic accounts. Design for Docker and durable GCP database/service deployment. Cloud resources and deployment are out of scope until Lab 5.
+| Status | Meaning/code |
+| --- | --- |
+| 400 | Malformed JSON or invalid UUID: INVALID_REQUEST |
+| 401 | Invalid login: INVALID_CREDENTIALS; protected session missing/expired/revoked: SESSION_REQUIRED |
+| 403 | Wrong role/self attempt: FORBIDDEN; invalid mutation Origin/CSRF: CSRF_INVALID |
+| 404 | Missing/out-of-scope request: REQUEST_NOT_FOUND |
+| 409 | Invalid, stale or repeated decision: INVALID_TRANSITION |
+| 422 | Field errors: VALIDATION_FAILED; assignment unavailable: NO_ELIGIBLE_REVIEWER |
+| 500 | Unexpected failure: INTERNAL_ERROR, safe message, transaction rolled back |
 
-## 8. Open design decisions
+Unknown write-body fields, including actor/role/assignment/status injection, are rejected with 422; do not silently trust them. Query parameters outside the allowed list are rejected. Browser navigation is not an authorization boundary.
 
-Resolve D-01 assignment behavior, D-02 edit/revision policy, D-03 reason policy, D-04 amount/currency bounds, D-05 stage count, D-06 stack and D-07 full names in `docs/srs.md` before affected contracts become implementation-ready.
+## 7. UI and shared behavior
+
+Routes: /login, /requests (role-scoped list), /requests/new (Requester only), /requests/:id (authorized detail/history plus Reviewer decision form). Current user/navigation comes from session API. A protected deep link requires login; do not render stale private records after logout or role/session failure.
+
+Use visible labels and field-level errors linked to controls, keyboard navigation, focus feedback, readable status text and announced submit results. Verify 375/768/1280 CSS px without horizontal overflow or overlapping actions. Views have loading, empty, failure/retry and success states. Preserve form input on validation/network failure; disable double-click while in flight. On 409, refresh the request and show that another decision has already occurred; never overwrite it. After uncertain submission, tell the user to inspect their list before retrying rather than silently auto-posting again. No idempotency guarantee for separately retried submissions is claimed in S1.
+
+## 8. Configuration, test isolation and delivery
+
+Document DATABASE_URL, TEST_DATABASE_URL, SESSION_SECRET if required by chosen session middleware, PORT, UI_ORIGIN and UI_API_BASE_URL in placeholder-only examples. Never expose server secrets in Vite/client variables. Guard the test harness so missing test URL cannot fall back to development. Proposed guard: test database name ends _test; only the isolated harness may prepare/clean test fixtures.
+
+Proposed structure: client/, server/, server/prisma/migrations/, server/tests/, e2e/. Issue #2 establishes real install/migrate/seed/run/build/test commands and environment validation. This review candidate does not claim executable tooling exists.
+
+Design now for Docker API/UI packaging and durable GCP managed database, external configuration/secrets, migrations before serving, health endpoint and logs. Actual Docker/CI/CD/GCP configuration is Lab 5. Never depend on container-local ephemeral database files for persistence.
+
+## 9. Review gate
+
+Pair review must confirm D-01–06, exact schemas/constraints, validation, session/CSRF lifecycle, API contracts and test plan before implementation. Record actual feedback and acceptance in GitHub; do not invent decision IDs, teammate approval, test passes or a release.
