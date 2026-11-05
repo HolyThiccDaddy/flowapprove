@@ -4,7 +4,7 @@ Feature AC verification remains pending unless the execution register says other
 
 | Requirement | Feature/responsibility | Sprint | Planned verification | Status |
 | --- | --- | --- | --- | --- |
-| Foundation | Issue #2: schema/migrations, local-safe seed, API/client shell and toolchain | 1 | `server/tests/test-database-url.test.ts`, `server/tests/seed-database-url.test.ts`, `server/tests/shadow-database-url.test.ts`, `server/tests/foundation.integration.test.ts`, `client/tests/app.test.tsx`, `client/e2e/foundation.spec.ts` | Local verification passed; review/merge pending. See Issue #2 execution evidence below. |
+| Foundation | Issue #2: schema/migrations, local-safe seed, API/client shell and toolchain | 1 | `server/tests/test-database-url.test.ts`, `server/tests/seed-database-url.test.ts`, `server/tests/shadow-database-url.test.ts`, `server/tests/foundation.integration.test.ts`, `client/tests/app.test.tsx`, `client/e2e/foundation.spec.ts` | Local verification passed; PR #8 targets `sprint-1-staging` and requests `osizk`. PR is open; GitHub check runs are not configured. See Issue #2 execution evidence below. |
 | FR-01 | F-01 | 1 | AC-01–03 / TEST-01–03; both role logins, safe identity, logout, expiry, anonymous denial | Planned; pair review pending |
 | FR-02 | F-02 | 1 | AC-04–05 / TEST-04–05; submission, validation, actual DB/restart retrieval | Planned |
 | FR-03 | F-03 | 1 | AC-07–08 / TEST-07–08; assigned approve/reject with durable history | Planned |
@@ -49,7 +49,7 @@ Issue #1 gap status: detailed proposals are ready for pair review; agreement and
 
 ## Issue #2 foundation execution evidence
 
-**Status:** Implemented locally on `feature/project-foundation`; PR/review/merge remains pending. The implementation follows the user's direction to proceed with the selected Issue #1 candidate; this evidence does not represent pair approval of the pending design decisions.
+**Status:** PR #8 is open from `feature/project-foundation` to `sprint-1-staging`; `osizk` was requested as reviewer. The implementation follows the user's direction to proceed with the selected Issue #1 candidate; this evidence does not represent pair approval of the pending design decisions.
 
 - TDD: the new database URL guard tests first failed because the resolver module was absent; after implementation the unit suite passed (4 files, 28 tests).
 - `npm test`: passed with `DATABASE_URL` deliberately pointing to the dedicated development database and `TEST_DATABASE_URL` pointing to the separate `_test` database. The runner migrated only `flowapprove_issue2_test`, then server tests passed (5 files, 31 tests) and client tests passed (1 file, 1 test).
@@ -59,4 +59,4 @@ Issue #1 gap status: detailed proposals are ready for pair review; agreement and
 - `npm run test:e2e`: passed (1 Chromium smoke test); it opened the UI and checked the live API's PostgreSQL health endpoint.
 - The test-runner guard rejects missing, malformed, non-PostgreSQL and non-`_test` URLs without falling back to `DATABASE_URL`. Seed guard rejects remote hosts and unapproved database names. Shadow URL guard rejects pointing the migration shadow database at the same physical database.
 - Local Windows host workaround: `node:os.userInfo()` fails with `uv_os_get_passwd returned ENOMEM` in this execution environment. Node commands were run with a temporary process-only shim for that host call; no shim was added to the repository. No passwords or database credentials were written to tracked files.
-- The final tested commit SHA and `git diff --check` / secret-scan results will be added to the PR evidence after the branch is committed and pushed.
+- Verification was rerun on commit `15d1baffdd89808225c7fcde4f69af6e9658a6a9`; the PR description records that SHA, commands, test counts, whitespace check and credential-pattern scan. GitHub currently reports zero check runs and zero commit statuses.
