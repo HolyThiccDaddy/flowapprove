@@ -1,0 +1,16 @@
+import { expect, test } from "@playwright/test";
+
+test("the browser shell reaches the live API and persistent database", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.getByRole("heading", { name: "Workflow and Approval System" })).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("API online");
+
+  const databaseHealth = await page.request.get("/api/health/database");
+  expect(databaseHealth.status()).toBe(200);
+  await expect(databaseHealth.json()).resolves.toEqual({
+    service: "workflow-approval-api",
+    status: "ok",
+    database: "ok",
+  });
+});
