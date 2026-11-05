@@ -4,7 +4,7 @@ Feature AC verification remains pending unless the execution register says other
 
 | Requirement | Feature/responsibility | Sprint | Planned verification | Status |
 | --- | --- | --- | --- | --- |
-| Foundation | Issue #2: schema/migrations, local-safe seed, API/client shell and toolchain | 1 | `server/tests/test-database-url.test.ts`, `server/tests/seed-database-url.test.ts`, `server/tests/shadow-database-url.test.ts`, `server/tests/foundation.integration.test.ts`, `client/tests/app.test.tsx`, `client/e2e/foundation.spec.ts` | Local verification passed; PR #8 targets `sprint-1-staging` and requests `osizk`. PR is open; GitHub check runs are not configured. See Issue #2 execution evidence below. |
+| Foundation | Issue #2: schema/migrations, local-safe seed, API/client shell and toolchain | 1 | `server/tests/test-database-url.test.ts`, `server/tests/seed-database-url.test.ts`, `server/tests/shadow-database-url.test.ts`, `server/tests/prisma-client-lifecycle.test.ts`, `server/tests/foundation.integration.test.ts`, `client/tests/app.test.tsx`, `client/e2e/foundation.spec.ts` | Local verification passed; PR #8 targets `sprint-1-staging` and requests `osizk`. PR is open; GitHub check runs are not configured. See Issue #2 execution evidence below. |
 | FR-01 | F-01 | 1 | AC-01–03 / TEST-01–03; both role logins, safe identity, logout, expiry, anonymous denial | Planned; pair review pending |
 | FR-02 | F-02 | 1 | AC-04–05 / TEST-04–05; submission, validation, actual DB/restart retrieval | Planned |
 | FR-03 | F-03 | 1 | AC-07–08 / TEST-07–08; assigned approve/reject with durable history | Planned |
@@ -51,12 +51,17 @@ Issue #1 gap status: detailed proposals are ready for pair review; agreement and
 
 **Status:** PR #8 is open from `feature/project-foundation` to `sprint-1-staging`; `osizk` was requested as reviewer. The implementation follows the user's direction to proceed with the selected Issue #1 candidate; this evidence does not represent pair approval of the pending design decisions.
 
-- TDD: the new database URL guard tests first failed because the resolver module was absent; after implementation the unit suite passed (4 files, 28 tests).
-- `npm test`: passed with `DATABASE_URL` deliberately pointing to the dedicated development database and `TEST_DATABASE_URL` pointing to the separate `_test` database. The runner migrated only `flowapprove_issue2_test`, then server tests passed (5 files, 31 tests) and client tests passed (1 file, 1 test).
+- TDD: the database URL guard tests first failed because the resolver module was absent; after implementation the unit suite passed (4 files, 28 tests).
+- Initial `npm test`: server 5 files / 31 tests passed; client 1 file / 1 test passed. The runner migrated only `flowapprove_issue2_test`, while `DATABASE_URL` was deliberately set to the separate development database.
 - Fresh database path: the isolated test database applied both committed migrations from an empty schema. The migration-managed development database applied the additive domain-constraints migration.
-- Safe seed: `npm run db:seed --workspace server` succeeded twice against the isolated local development database using randomly generated synthetic passwords held only in the process environment. Integration coverage verifies reruns preserve an intentionally changed password hash, reviewer mapping and request history.
-- `npm run build`: passed; client TypeScript/Vite build and server Prisma generation/TypeScript build completed.
-- `npm run test:e2e`: passed (1 Chromium smoke test); it opened the UI and checked the live API's PostgreSQL health endpoint.
+- Safe seed regression: the initial implementation's two seed runs passed against the isolated local development database. Integration coverage verifies reruns preserve an intentionally changed password hash, reviewer mapping and request history.
+- Existing baseline E2E: one Chromium smoke test passed on the earlier foundation head; it checked the UI and live API's PostgreSQL health endpoint.
 - The test-runner guard rejects missing, malformed, non-PostgreSQL and non-`_test` URLs without falling back to `DATABASE_URL`. Seed guard rejects remote hosts and unapproved database names. Shadow URL guard rejects pointing the migration shadow database at the same physical database.
-- Local Windows host workaround: `node:os.userInfo()` fails with `uv_os_get_passwd returned ENOMEM` in this execution environment. Node commands were run with a temporary process-only shim for that host call; no shim was added to the repository. No passwords or database credentials were written to tracked files.
-- Verification was rerun on commit `15d1baffdd89808225c7fcde4f69af6e9658a6a9`; the PR description records that SHA, commands, test counts, whitespace check and credential-pattern scan. GitHub currently reports zero check runs and zero commit statuses.
+- Prisma Client generation review follow-up was published at PR commit `7ffbf56ae7123355ff03756afd8cde1c7e3d0550`. In a clean checkout of that source, `npm ci --offline` started and ended without `server/src/generated/prisma/client.ts`; no local `.env` file was present. `npm run db:migrate --workspace server` succeeded with no pending migrations while the generated client remained absent.
+- TDD for the P1 fix: the lifecycle test first failed on all three missing-generation checks; after adding the hooks and test-runner generation it passed all 3 checks.
+- From that checkout, `npm run db:seed --workspace server` generated Prisma Client before importing the seed and succeeded. `npx prisma db seed` also generated the client through the configured npm lifecycle and succeeded.
+- After removing the generated client again, `npm test` generated it before applying test migrations; server passed 6 files / 34 tests and client passed 1 file / 1 test. `npm run build` passed.
+- After removing the generated client again, `npm run dev --workspace server` ran `predev`, generated the client, and started the API; both `/api/health` and `/api/health/database` returned `ok`.
+- `git diff --check` and the credential-pattern scan passed for the reviewed changes. No password, database credential or generated client was committed.
+- Local Windows host workaround: `node:os.userInfo()` fails with `uv_os_get_passwd returned ENOMEM` in this execution environment. Validation used a temporary process-only shim and a temporary copy of the cached Prisma engines; neither workaround was added to the repository.
+- GitHub reports zero check runs and zero commit statuses for the P1 follow-up head; the local verification above is recorded separately from those hosted checks.
