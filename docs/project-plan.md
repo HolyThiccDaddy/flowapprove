@@ -1,8 +1,8 @@
-# FlowApprove project plan — Issue #1 review candidate
+# Workflow and Approval System project plan — Issue #1 review candidate
 
 **Date:** 5 Nov 2026. **Team:** CPE 334 EN-037 DoubleP; Thira Rungruangkaset / HolyThiccDaddy (67070503419), Ashira Sansoda / osizk (67070503445). **Theme:** 5, Workflow and Approval System.
 
-Planning only: no application or released increment exists. The user selected the purchase-request proposal for teammate review; pair approval is pending. FlowApprove is a working name, not a course requirement.
+Planning only: no application or released increment exists. The owner selected Workflow and Approval System as the project name and the purchase-request proposal for teammate review; pair approval of scope and detailed contracts is pending. The repository slug is still `flowapprove` until renamed.
 
 ## 1. Sources and precedence
 

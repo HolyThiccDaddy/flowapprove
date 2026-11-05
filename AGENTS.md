@@ -1,4 +1,4 @@
-# FlowApprove Working Agreement
+# Workflow and Approval System Working Agreement
 
 Instructions for AI agents working in this repository on CPE 334, Theme 5: Workflow and Approval System. Apply these rules to the group project and its associated Labs 5–7. This is a new group product; TokTickIT Labs 1–4 provide engineering experience, not this application's requirements or evidence.
 
@@ -32,7 +32,7 @@ Preserve stable FR, BR, NFR, F, AC and TEST IDs. Check that an ID has the same m
 
 ## 3. Theme 5 scope
 
-The course requires a specialized approval context, such as funding, purchases, travel or reimbursement. The current purchase-request context, product name, stack, fields, API paths and exact state names remain proposals until the pair agrees.
+The course requires a specialized approval context, such as funding, purchases, travel or reimbursement. The owner selected Workflow and Approval System as the project name. The current purchase-request context, stack, fields, API paths and exact state names remain proposals until the pair agrees.
 
 Sprint 1 must deliver a complete UI → API/application → persistent database journey:
 

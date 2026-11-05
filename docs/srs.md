@@ -1,7 +1,7 @@
 # Software Requirements Specification (draft)
 
 **Project:** CPE 334 EN-037 DoubleP · **Theme:** 5, Workflow and Approval System  
-**Product name:** FlowApprove (team proposal; not course-mandated)  
+**Product name:** Workflow and Approval System (owner-selected; pair review pending)  
 **Status:** Issue #1 review candidate, 5 Nov 2026. The user selected the purchase-request proposal for teammate review; pair approval is pending. No implementation or verification is claimed.
 **Team:** Thira Rungruangkaset (GitHub: HolyThiccDaddy, student ID 67070503419) and Ashira Sansoda (GitHub: osizk, student ID 67070503445).
 
@@ -76,7 +76,7 @@ On 5 Nov the user selected equipment purchase requests, React/Node TypeScript/Po
 | D-05 | Stages | One stage throughout baseline; FR-08/F-07 explicitly deferred, not silently removed. | Pair review pending. |
 | D-06 | Stack | React + TypeScript, Node.js + TypeScript, PostgreSQL; SDS proposes exact tooling/security/test design. Issue #2 validates compatibility and records actual commands. | Pair review pending. |
 
-FlowApprove is a working name, not prescribed by the course. Name confirmation and actual pair sign-off remain pending.
+The owner selected Workflow and Approval System as the project name; the course prescribes Theme 5 rather than a repository name. Pair sign-off on the scope and detailed decisions remains pending.
 
 
 ## 6. Change control
