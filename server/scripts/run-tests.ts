@@ -18,5 +18,6 @@ function run(entry: string, args: string[]): void {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
+run(prismaEntry, ["generate"]);
 run(prismaEntry, ["migrate", "deploy"]);
 run(vitestEntry, ["run", "--config", "vitest.config.ts"]);

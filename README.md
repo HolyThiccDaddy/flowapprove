@@ -51,6 +51,8 @@ The test runner requires `TEST_DATABASE_URL` explicitly. It rejects non-PostgreS
 
 The seed creates only missing synthetic users, so initial passwords are required only when those identities do not already exist. Preserve `server/.env` and its synthetic seed values between reruns if repeatable demo logins are needed. Use fake data only; no real member credentials are expected in this project.
 
+Prisma Client is generated automatically before the server starts, before the seed runs, before server integration-test migrations, and during the build. A fresh clone does not need a build step before seeding or starting the application.
+
 ## Project documents
 
 | File | Purpose / status |

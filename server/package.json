@@ -3,12 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "npm run prisma:generate",
     "dev": "tsx watch src/index.ts",
     "build": "npm run prisma:generate && tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "test:unit": "vitest run --config vitest.unit.config.ts",
     "test": "tsx scripts/run-tests.ts",
     "db:migrate": "tsx scripts/run-prisma.ts migrate deploy",
+    "predb:seed": "npm run prisma:generate",
     "db:seed": "tsx prisma/seed.ts",
     "prisma:generate": "tsx scripts/run-prisma.ts generate"
   },
