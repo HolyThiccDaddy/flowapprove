@@ -1,44 +1,73 @@
 # Workflow and Approval System
 
-Planning repository for **CPE 334, EN-037 DoubleP**, Theme 5: Workflow and Approval System. The owner selected **Workflow and Approval System** as the project name. The GitHub repository slug remains `flowapprove` until it is renamed; the course does not prescribe a repository name.
+This repository is the EN-037 DoubleP team's **Workflow and Approval System** project for CPE 334, Theme 5. The GitHub repository slug is `flowapprove`.
 
-Members: Thira Rungruangkaset / HolyThiccDaddy (67070503419) and Ashira Sansoda / osizk (67070503445). The team registration Sheet confirms EN-037, DoubleP and Theme 5. This repository contains planning documents only. The application, tests, release and submission evidence have not been produced.
+Members: Thira Rungruangkaset / HolyThiccDaddy (67070503419) and Ashira Sansoda / osizk (67070503445). The team registration Sheet confirms EN-037, DoubleP and Theme 5.
 
-## Documents
+## Delivery status
+
+Issue #1 planning documents are a review candidate; pair approval of the detailed scope/contracts remains pending. The Issue #2 implementation below follows the user's direction to proceed with the selected candidate and does not claim teammate sign-off. This repository now contains a runnable React/TypeScript + Express/TypeScript + PostgreSQL/Prisma foundation, its first migrations, repeat-safe synthetic seed, and unit/integration/browser test configuration. Authentication, request submission and approval features are subsequent issues and are not claimed complete here.
+
+Course checkpoints: Deliverable 1 — 8 Nov 2026 at 23:59; Lab 5 — 15 Nov; Lab 6 — 22 Nov; Deliverable 2/Lab 7 — 29 Nov; Final Project Delivery — 13 Dec. The Final handout has conflicting video limits (10 minutes in section 2 and 4 minutes in section 3.5); the plan records this as an instructor/TA question. Target 4 minutes until clarified.
+
+## Prerequisites
+
+- Node.js 24 LTS and npm 11 (the repository declares Node `>=24.11 <25`).
+- PostgreSQL 16 or newer. PostgreSQL must be listening on the local machine for the documented development and test setup.
+- A Chromium browser installed for Playwright E2E.
+
+## Local setup
+
+From the repository root:
+
+1. Install locked dependencies: `npm ci`.
+2. Create three empty local PostgreSQL databases owned by a least-privileged application role: `flowapprove_dev`, `flowapprove_test`, and `flowapprove_shadow`. Do not use a production/shared database. The role must be able to create/alter schema objects in these databases; it does not need `CREATEDB` because the shadow database is explicit.
+3. Copy `server/.env.example` to `server/.env` and set `DATABASE_URL` and `SHADOW_DATABASE_URL` to those local databases, and set `UI_ORIGIN` to the exact browser origin. The API sends credentialed CORS headers only for this origin. Keep credentials local; never commit `.env`.
+4. Apply committed migrations: `npm run db:migrate --workspace server`.
+5. For local demo data only, set the four `SEED_*_PASSWORD` variables in `server/.env` to unique synthetic passwords (12–128 characters) before running `npm run db:seed --workspace server`. Seeding is limited by code to a local PostgreSQL host and a `flowapprove_*_dev` or `flowapprove_*_test` database. It creates Requester A/B and Reviewer R/S, maps A→R and B→S, hashes new passwords with Argon2id, and never overwrites existing passwords, role, active state, or non-null reviewer mapping.
+6. Start API and UI: `npm run dev`.
+7. Open `http://127.0.0.1:5173/`. The API is at `http://127.0.0.1:4000`; `/api/health` is liveness and `/api/health/database` checks a real PostgreSQL query.
+
+A minimal local role example (run using a PostgreSQL administrator account only during initial local setup):
+
+```sql
+CREATE ROLE flowapprove_app LOGIN;
+CREATE DATABASE flowapprove_dev OWNER flowapprove_app;
+CREATE DATABASE flowapprove_test OWNER flowapprove_app;
+CREATE DATABASE flowapprove_shadow OWNER flowapprove_app;
+```
+
+Use local authentication configured for your PostgreSQL installation. Do not put a real password into the example file or commit it. If your local PostgreSQL requires a password, enter it only in your ignored `server/.env` file.
+
+## Tests and build
+
+The test runner requires `TEST_DATABASE_URL` explicitly. It rejects non-PostgreSQL URLs, non-local hosts and database names that do not end with `_test`, does not fall back to `DATABASE_URL`, then applies only committed migrations to the isolated test database before running server unit and DB/API integration tests. The shadow DB guard requires a distinct local `flowapprove_*_shadow` database to prevent Prisma from dropping objects in the application database.
+
+1. Copy `server/.env.test.example` to your local shell environment or load it with your preferred secret-safe environment manager. Set `TEST_DATABASE_URL` to the dedicated empty `flowapprove_test` database. Never point it at `flowapprove_dev` or any shared/production database.
+2. Run `npm test` from the repository root. It runs the guarded server migrate/test flow and client unit tests. Tests add only their owned fixtures and clean them up; they do not reset or truncate the test database.
+3. Run `npm run test:e2e` for Playwright smoke coverage.
+4. Run `npm run build` for TypeScript and production builds.
+5. `npm run test:unit` runs only the server unit and client unit suites; it does not connect to PostgreSQL.
+
+The seed creates only missing synthetic users, so initial passwords are required only when those identities do not already exist. Preserve `server/.env` and its synthetic seed values between reruns if repeatable demo logins are needed. Use fake data only; no real member credentials are expected in this project.
+
+Prisma Client is generated automatically before the server starts, before the seed runs, before server integration-test migrations, and during the build. A fresh clone does not need a build step before seeding or starting the application.
+
+## Project documents
 
 | File | Purpose / status |
 | --- | --- |
 | [Project plan](docs/project-plan.md) | Source comparison, baseline plan, three sprints, A–F coverage and open decisions. |
 | [SRS](docs/srs.md) | Draft problem, scope, actors, requirements, rules and NFRs. |
 | [Feature inventory](docs/features.md) | Draft features, dependencies and sprint allocation. |
-| [Traceability](docs/traceability.md) | Requirement-to-feature-to-sprint-to-planned-verification mapping. All verification is planned, not executed. |
-| [System SDS](docs/system-sds.md) | Proposed architecture, data, API, permissions, session and delivery design. |
-| [Sprint 1 contracts](docs/sprints/sprint-1/contracts.md) | Draft F-01–F-03 designs, AC and STS. Requires pair review and decision closure before implementation. |
+| [Traceability](docs/traceability.md) | Requirement-to-feature-to-sprint-to-verification mapping; executed evidence is identified separately from planned checks. |
+| [System SDS](docs/system-sds.md) | Architecture, data, API, permissions, session and delivery design. |
+| [Sprint 1 contracts](docs/sprints/sprint-1/contracts.md) | F-01–F-03 designs, AC and STS; pair review remains pending. |
 
-Course requirements are distinguished from team proposals and open decisions. These documents are drafts for review; their presence does not mean the team approved all design choices or that anything is implemented.
+## Issues and Git workflow
 
-## Course checkpoints
+Sprint 1 Issues: [#1 baseline/contracts](https://github.com/HolyThiccDaddy/flowapprove/issues/1), [#2 foundation](https://github.com/HolyThiccDaddy/flowapprove/issues/2), [#3 identity](https://github.com/HolyThiccDaddy/flowapprove/issues/3), [#4 requests](https://github.com/HolyThiccDaddy/flowapprove/issues/4), [#5 decisions/history](https://github.com/HolyThiccDaddy/flowapprove/issues/5), [#6 integration/release](https://github.com/HolyThiccDaddy/flowapprove/issues/6). Work branches from `sprint-1-staging`; feature PRs target that branch after teammate review. Do not commit to `main` or claim an Issue done before its PR is formally approved and merged.
 
-- **Deliverable 1:** 8 Nov 2026 at 23:59 — engineering baseline plus working Sprint 1, with one self-contained PDF submitted in LEB2.
-- **Lab 5:** 15 Nov — Docker, CI/CD and GCP deployment.
-- **Lab 6:** 22 Nov — cross-team UAT.
-- **Deliverable 2 and Lab 7:** 29 Nov — Sprint 2 completion, Sprint 3 progress and maintenance.
-- **Final Project Delivery:** 13 Dec — completed, verified release, report and video.
+## Source material and open decisions
 
-The Final handout is internally inconsistent on the video limit (10 minutes in section 2, 4 minutes in section 3.5), and its points differ from the master specification. See the open question in the plan; use a four-minute target until the instructor/TA clarifies it.
-
-## Issue #1 review candidate
-
-On 5 Nov 2026 the user selected a review proposal: equipment purchase requests, React/Node TypeScript/PostgreSQL, one approval stage, seeded server-side Reviewer assignment, immutable submitted requests, rejection reason required/approval reason optional, and THB 0.01–1,000,000.00 with two-decimal precision. Detailed validation, API, data, session/security and STS proposals are in the SRS, SDS and Sprint 1 contracts. **Teammate review and pair approval remain pending.** No application, passing tests or release is claimed.
-
-The SRS is canonical for requirement IDs and D-01–06. Additional approval stages (FR-08/F-07) are explicitly deferred outside the selected baseline. The project name is Workflow and Approval System; pair confirmation of the scope and detailed contracts remains pending.
-
-Sprint 1 backlog: [#1 baseline/contracts](https://github.com/HolyThiccDaddy/flowapprove/issues/1), [#2 foundation](https://github.com/HolyThiccDaddy/flowapprove/issues/2), [#3 identity](https://github.com/HolyThiccDaddy/flowapprove/issues/3), [#4 requests](https://github.com/HolyThiccDaddy/flowapprove/issues/4), [#5 decisions/history](https://github.com/HolyThiccDaddy/flowapprove/issues/5), [#6 integration/release](https://github.com/HolyThiccDaddy/flowapprove/issues/6). The user requested no Submission PDF Issue; the PDF is still required.
-
-Issue #1 work is on `docs/sprint-1-baseline`, targeting `sprint-1-staging` after genuine teammate review. **Do not commit on main.** No release promotion is part of this documentation task. Both students must understand and review the requirements/designs before affected implementation.
-
-When implementation starts, add exact dependencies, environment-variable examples, database migration/seed, local run, build and test commands. Keep secrets out of Git.
-
-## Source material
-
-Derived from the four course handouts supplied locally: Group Work Specification, Project Deliverables 1 and 2, and Final Project Delivery. The [team registration Sheet](https://docs.google.com/spreadsheets/d/1o9Nov4AiqYeRHTswY_TaeWlWNzjIVlM77tRnmniKRhE/edit?gid=2080208721#gid=2080208721) was read only.
+The project plan derives from the Group Work Specification and Project Deliverables 1/2/Final handouts. The team's registration Sheet was read only. The selected planning baseline is described in [Issue #1 review candidate](docs/sprints/sprint-1/contracts.md); teammates must review it before the dependent feature implementation is treated as agreed. The two Final handouts conflict on video length; see [project plan](docs/project-plan.md) for the exact question.
