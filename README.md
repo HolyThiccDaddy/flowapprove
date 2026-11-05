@@ -1,6 +1,6 @@
-# FlowApprove
+# Workflow and Approval System
 
-Planning repository for **CPE 334, EN-037 DoubleP**, Theme 5: Workflow and Approval System. FlowApprove is a proposed product/repository name; the course does not prescribe it.
+Planning repository for **CPE 334, EN-037 DoubleP**, Theme 5: Workflow and Approval System. The owner selected **Workflow and Approval System** as the project name. The GitHub repository slug remains `flowapprove` until it is renamed; the course does not prescribe a repository name.
 
 Members: Thira Rungruangkaset / HolyThiccDaddy (67070503419) and Ashira Sansoda / osizk (67070503445). The team registration Sheet confirms EN-037, DoubleP and Theme 5. This repository contains planning documents only. The application, tests, release and submission evidence have not been produced.
 
@@ -27,11 +27,15 @@ Course requirements are distinguished from team proposals and open decisions. Th
 
 The Final handout is internally inconsistent on the video limit (10 minutes in section 2, 4 minutes in section 3.5), and its points differ from the master specification. See the open question in the plan; use a four-minute target until the instructor/TA clarifies it.
 
-## Decisions before implementation
+## Issue #1 review candidate
 
-The prohibition on self-approval is required by Theme 5; the team must agree how to enforce and test it. The pair still needs to agree on reviewer assignment, editing after submission, decision reasons, amount/currency limits, stack and whether to include a second approval stage. Freeze the affected contracts before coding.
+On 5 Nov 2026 the user selected a review proposal: equipment purchase requests, React/Node TypeScript/PostgreSQL, one approval stage, seeded server-side Reviewer assignment, immutable submitted requests, rejection reason required/approval reason optional, and THB 0.01–1,000,000.00 with two-decimal precision. Detailed validation, API, data, session/security and STS proposals are in the SRS, SDS and Sprint 1 contracts. **Teammate review and pair approval remain pending.** No application, passing tests or release is claimed.
 
-Both students should review and understand the requirements and designs. Then create bounded Issues and work through reviewed feature branches and sprint staging as required by the course.
+The SRS is canonical for requirement IDs and D-01–06. Additional approval stages (FR-08/F-07) are explicitly deferred outside the selected baseline. The project name is Workflow and Approval System; pair confirmation of the scope and detailed contracts remains pending.
+
+Sprint 1 backlog: [#1 baseline/contracts](https://github.com/HolyThiccDaddy/flowapprove/issues/1), [#2 foundation](https://github.com/HolyThiccDaddy/flowapprove/issues/2), [#3 identity](https://github.com/HolyThiccDaddy/flowapprove/issues/3), [#4 requests](https://github.com/HolyThiccDaddy/flowapprove/issues/4), [#5 decisions/history](https://github.com/HolyThiccDaddy/flowapprove/issues/5), [#6 integration/release](https://github.com/HolyThiccDaddy/flowapprove/issues/6). The user requested no Submission PDF Issue; the PDF is still required.
+
+Issue #1 work is on `docs/sprint-1-baseline`, targeting `sprint-1-staging` after genuine teammate review. **Do not commit on main.** No release promotion is part of this documentation task. Both students must understand and review the requirements/designs before affected implementation.
 
 When implementation starts, add exact dependencies, environment-variable examples, database migration/seed, local run, build and test commands. Keep secrets out of Git.
 
