@@ -2,7 +2,7 @@
 
 Planning repository for **CPE 334, EN-037 DoubleP**, Theme 5: Workflow and Approval System. FlowApprove is a proposed product/repository name; the course does not prescribe it.
 
-Members: HolyThiccDaddy (67070503419) and osizk (67070503445). The team registration Sheet confirms EN-037, DoubleP and Theme 5. This repository contains planning documents only. The application, tests, release and submission evidence have not been produced.
+Members: Thira Rungruangkaset / HolyThiccDaddy (67070503419) and Ashira Sansoda / osizk (67070503445). The team registration Sheet confirms EN-037, DoubleP and Theme 5. This repository contains planning documents only. The application, tests, release and submission evidence have not been produced.
 
 ## Documents
 
