@@ -17,11 +17,11 @@ The course asks the team to specialize Theme 5 and decide its ambiguous rules. T
 | --- | --- |
 | **COURSE REQUIRED** | Theme 5 must have Requester/Reviewer roles, a submitted request, assigned review and approve/reject decision with recorded history; reject invalid transitions and self-approval; enforce ownership/assignment in the backend. Deliverable 1 requires real authentication, UI→API→persistent DB, tests, reviewed integration and an evidence PDF. |
 | **TEAM PROPOSAL** | Purchase-request context, product name, stack, fields, state names, API paths, edit lock, summary design and second-stage feature allocation. These are planned choices, not claims that the assignment mandates them. |
-| **OPEN** | Reviewer assignment algorithm, editing and revision policy, decision reason policy, amount/currency limits, second-stage rules, both students' full names for submission, and the conflicting final-video limit/points. Freeze each affected contract before coding. |
+| **OPEN** | Reviewer assignment algorithm, editing and revision policy, decision reason policy, amount/currency limits, second-stage rules, and the conflicting final-video limit/points. Freeze each affected contract before coding. |
 
 ## 2. Team, problem, users and scope (Deliverable 1 Part A, 10 points)
 
-**Team:** CPE 334 EN-037 DoubleP. HolyThiccDaddy (67070503419) and osizk (67070503445). **Theme:** 5, Workflow and Approval System. **Proposed context:** small departmental purchase requests. Requesters need to submit a purchase need and see its current state; assigned Reviewers need a controlled decision with an auditable reason. Email or spreadsheets alone make ownership, authorization and decision history hard to verify.
+**Team:** CPE 334 EN-037 DoubleP. Thira Rungruangkaset (GitHub: HolyThiccDaddy, student ID 67070503419) and Ashira Sansoda (GitHub: osizk, student ID 67070503445). **Theme:** 5, Workflow and Approval System. **Proposed context:** small departmental purchase requests. Requesters need to submit a purchase need and see its current state; assigned Reviewers need a controlled decision with an auditable reason. Email or spreadsheets alone make ownership, authorization and decision history hard to verify.
 
 **Actors:** Requester creates and reads own requests. Reviewer reads only assigned requests and approves/rejects them. The same account may have one role in Sprint 1; seed two or more accounts. No administrator role is needed for Sprint 1.
 
