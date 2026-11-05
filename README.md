@@ -2,15 +2,20 @@
 
 Planning repository for **CPE 334, EN-037 DoubleP**, Theme 5: Workflow and Approval System. FlowApprove is a proposed product/repository name; the course does not prescribe it.
 
-Members: HolyThiccDaddy (67070503419) and osizk (67070503445). The team registration Sheet confirms EN-037, DoubleP and Theme 5. This repository currently contains planning only. The application, tests, release and submission evidence have not been produced.
+Members: HolyThiccDaddy (67070503419) and osizk (67070503445). The team registration Sheet confirms EN-037, DoubleP and Theme 5. This repository contains planning documents only. The application, tests, release and submission evidence have not been produced.
 
 ## Documents
 
-| File | Purpose |
+| File | Purpose / status |
 | --- | --- |
-| [Project plan](docs/project-plan.md) | Source comparison, proposed SRS, feature traceability, system design, three-sprint plan, Sprint 1 contract draft, Deliverable 1 A–F coverage and open decisions. |
+| [Project plan](docs/project-plan.md) | Source comparison, baseline plan, three sprints, A–F coverage and open decisions. |
+| [SRS](docs/srs.md) | Draft problem, scope, actors, requirements, rules and NFRs. |
+| [Feature inventory](docs/features.md) | Draft features, dependencies and sprint allocation. |
+| [Traceability](docs/traceability.md) | Requirement-to-feature-to-sprint-to-planned-verification mapping. All verification is planned, not executed. |
+| [System SDS](docs/system-sds.md) | Proposed architecture, data, API, permissions, session and delivery design. |
+| [Sprint 1 contracts](docs/sprints/sprint-1/contracts.md) | Draft F-01–F-03 designs, AC and STS. Requires pair review and decision closure before implementation. |
 
-The plan distinguishes course requirements from team proposals and unapproved choices. Its Sprint 1 contracts are drafts that must be approved and versioned before implementation.
+Course requirements are distinguished from team proposals and open decisions. These documents are drafts for review; their presence does not mean the team approved all design choices or that anything is implemented.
 
 ## Course checkpoints
 
@@ -22,11 +27,13 @@ The plan distinguishes course requirements from team proposals and unapproved ch
 
 The Final handout is internally inconsistent on the video limit (10 minutes in section 2, 4 minutes in section 3.5), and its points differ from the master specification. See the open question in the plan; use a four-minute target until the instructor/TA clarifies it.
 
-## Next team decisions
+## Decisions before implementation
 
-Agree on reviewer assignment, self-approval enforcement, post-submission editing, decision reasons, money limits and any second approval stage. Then freeze Sprint 1 contracts, create Issues and work through reviewed feature branches and sprint staging.
+The prohibition on self-approval is required by Theme 5; the team must agree how to enforce and test it. The pair still needs to agree on reviewer assignment, editing after submission, decision reasons, amount/currency limits, stack and whether to include a second approval stage. Freeze the affected contracts before coding.
 
-When implementation starts, replace this planning-only section with exact dependencies, environment-variable examples, database migration/seed, local run, build and test commands. Keep secrets out of Git.
+Both students should review and understand the requirements and designs. Then create bounded Issues and work through reviewed feature branches and sprint staging as required by the course.
+
+When implementation starts, add exact dependencies, environment-variable examples, database migration/seed, local run, build and test commands. Keep secrets out of Git.
 
 ## Source material
 
