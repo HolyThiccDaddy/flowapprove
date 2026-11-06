@@ -16,5 +16,6 @@
     "exactOptionalPropertyTypes": true,
     "types": ["vite/client"]
   },
-  "include": ["src", "tests", "e2e"]
+  "include": ["src", "tests"],
+  "exclude": ["e2e"]
 }
