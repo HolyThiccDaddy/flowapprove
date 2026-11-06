@@ -5,7 +5,7 @@ Feature AC verification remains pending unless the execution register says other
 | Requirement | Feature/responsibility | Sprint | Planned verification | Status |
 | --- | --- | --- | --- | --- |
 | Foundation | Issue #2: schema/migrations, local-safe seed, API/client shell and toolchain | 1 | `server/tests/test-database-url.test.ts`, `server/tests/seed-database-url.test.ts`, `server/tests/shadow-database-url.test.ts`, `server/tests/prisma-client-lifecycle.test.ts`, `server/tests/foundation.integration.test.ts`, `client/tests/app.test.tsx`, `client/e2e/foundation.spec.ts` | Local verification passed; PR #8 targets `sprint-1-staging` and requests `osizk`. PR is open; GitHub check runs are not configured. See Issue #2 execution evidence below. |
-| FR-01 | F-01 | 1 | AC-01–03 / TEST-01–03; both role logins, safe identity, logout, expiry, anonymous denial | Planned; pair review pending |
+| FR-01 | F-01 | 1 | AC-01–03 / TEST-01–03; both role logins, safe identity, logout, expiry, anonymous denial | Unit/UI checks pass on `3574c82`; API/database acceptance tests not executed; pair review/staging merge pending |
 | FR-02 | F-02 | 1 | AC-04–05 / TEST-04–05; submission, validation, actual DB/restart retrieval | Planned |
 | FR-03 | F-03 | 1 | AC-07–08 / TEST-07–08; assigned approve/reject with durable history | Planned |
 | FR-04 | F-02/F-03 | 1 | AC-06/09 / TEST-06/09; scoped lists/detail/history and role/assignment denials | Planned |
@@ -31,9 +31,9 @@ The paths below remain planned for feature Issues #3–#5. Issue #2 foundation t
 
 | AC | Test | Planned location(s) | Execution result / command / tested commit |
 | --- | --- | --- | --- |
-| AC-01 | TEST-01 | server/tests/auth.integration.test.ts; e2e/authentication.spec.ts | Not executed |
-| AC-02 | TEST-02 | server/tests/auth.integration.test.ts | Not executed |
-| AC-03 | TEST-03 | server/tests/auth.integration.test.ts; e2e/authentication.spec.ts | Not executed |
+| AC-01 | TEST-01 | server/tests/auth.integration.test.ts; client/e2e/authentication.spec.ts | API/DB and browser execution pending; no test database or API environment configured |
+| AC-02 | TEST-02 | server/tests/auth.integration.test.ts | API/DB execution pending; no `TEST_DATABASE_URL` |
+| AC-03 | TEST-03 | server/tests/auth.integration.test.ts; client/e2e/authentication.spec.ts | API/DB and browser execution pending; no test database or API environment configured |
 | AC-04 | TEST-04 | server/tests/requests.integration.test.ts; server/tests/persistence.integration.test.ts; e2e/request-submission.spec.ts | Not executed |
 | AC-05 | TEST-05 | server/tests/request-validation.test.ts; server/tests/requests.integration.test.ts | Not executed |
 | AC-06 | TEST-06 | server/tests/requests.integration.test.ts | Not executed |
@@ -45,6 +45,16 @@ The paths below remain planned for feature Issues #3–#5. Issue #2 foundation t
 For UI-CHECK-01/SEC-CHECK-01, also record method, environment/version, actual results and findings when performed. Issue #6 consolidates actual results and selected evidence; it cannot substitute a release claim for unexecuted checks.
 
 Issue #1 gap status: detailed proposals are ready for pair review; agreement and feature implementation remain pending. Issue #2 establishes reusable tooling; its actual run results and tested commit are recorded in the Issue #2 PR. All feature-level execution and reviewed integration remain pending. Future features need contracts before coding. Deferred FR-08 is explicitly excluded, not a silently uncovered requirement.
+
+## Issue #3 local execution evidence
+
+- Tests-first commit: `8b13e4d` adds F-01 helper, role-guard, API/database and UI tests. A red test run before the implementation commit was not captured; do not claim red/green TDD evidence for this Issue.
+- `npm run test:unit` on implementation commit `3574c82`: server 6 files / 35 tests passed; client 1 file / 3 tests passed. These unit/UI checks do not verify persisted authentication sessions.
+- `npm run build` on `3574c82`: client TypeScript/Vite build passed; server Prisma Client generation and TypeScript build passed.
+- API auth test TypeScript check passed for `server/tests/auth-session.test.ts` and `server/tests/auth.integration.test.ts`. E2E TypeScript check passed; `npx playwright test --config playwright.config.ts --list` found two browser tests.
+- `server/tests/auth.integration.test.ts` was not executed: `TEST_DATABASE_URL` and `server/.env.test` are absent. The guarded runner was not given a database URL and no development database was used.
+- Browser tests were not executed: API startup stopped because `DATABASE_URL` and `server/.env` are absent. The browser test list is discovery only, not an execution result.
+- Teammate review, PR integration and staging/main promotion are pending. Rate limiting for public login remains an SDS release prerequisite.
 
 
 ## Issue #2 foundation execution evidence

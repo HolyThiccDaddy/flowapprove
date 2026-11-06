@@ -6,7 +6,7 @@ Members: Thira Rungruangkaset / HolyThiccDaddy (67070503419) and Ashira Sansoda 
 
 ## Delivery status
 
-Issue #1 planning documents are a review candidate; pair approval of the detailed scope/contracts remains pending. The Issue #2 implementation below follows the user's direction to proceed with the selected candidate and does not claim teammate sign-off. This repository now contains a runnable React/TypeScript + Express/TypeScript + PostgreSQL/Prisma foundation, its first migrations, repeat-safe synthetic seed, and unit/integration/browser test configuration. Authentication, request submission and approval features are subsequent issues and are not claimed complete here.
+Issue #1 planning documents are a review candidate; pair approval of the detailed scope/contracts remains pending. The Issue #2 implementation follows the user's direction to proceed with the selected candidate and does not claim teammate sign-off. The `feature/authentication` branch contains the Issue #3 candidate. On commit `3574c82`, unit suites and production builds passed; real API/database integration and browser execution remain pending a local database setup and teammate review. Request submission and approval remain subsequent issues.
 
 Course checkpoints: Deliverable 1 — 8 Nov 2026 at 23:59; Lab 5 — 15 Nov; Lab 6 — 22 Nov; Deliverable 2/Lab 7 — 29 Nov; Final Project Delivery — 13 Dec. The Final handout has conflicting video limits (10 minutes in section 2 and 4 minutes in section 3.5); the plan records this as an instructor/TA question. Target 4 minutes until clarified.
 
@@ -26,7 +26,7 @@ From the repository root:
 4. Apply committed migrations: `npm run db:migrate --workspace server`.
 5. For local demo data only, set the four `SEED_*_PASSWORD` variables in `server/.env` to unique synthetic passwords (12–128 characters) before running `npm run db:seed --workspace server`. Seeding is limited by code to a local PostgreSQL host and a `flowapprove_*_dev` or `flowapprove_*_test` database. It creates Requester A/B and Reviewer R/S, maps A→R and B→S, hashes new passwords with Argon2id, and never overwrites existing passwords, role, active state, or non-null reviewer mapping.
 6. Start API and UI: `npm run dev`.
-7. Open `http://127.0.0.1:5173/`. The API is at `http://127.0.0.1:4000`; `/api/health` is liveness and `/api/health/database` checks a real PostgreSQL query.
+7. Open `http://127.0.0.1:5173/login`. The API is at `http://127.0.0.1:4000`; `/api/health` is liveness and `/api/health/database` checks a real PostgreSQL query.
 
 A minimal local role example (run using a PostgreSQL administrator account only during initial local setup):
 
@@ -49,9 +49,9 @@ The test runner requires `TEST_DATABASE_URL` explicitly. It rejects non-PostgreS
 4. Run `npm run build` for TypeScript and production builds.
 5. `npm run test:unit` runs only the server unit and client unit suites; it does not connect to PostgreSQL.
 
-The seed creates only missing synthetic users, so initial passwords are required only when those identities do not already exist. Preserve `server/.env` and its synthetic seed values between reruns if repeatable demo logins are needed. Use fake data only; no real member credentials are expected in this project.
+The seed creates only missing synthetic users, so initial passwords are required only when those identities do not already exist. Preserve `server/.env` and its synthetic seed values between reruns if repeatable demo logins are needed. Sign in with `requester.a@example.test`, `requester.b@example.test`, `reviewer.r@example.test` or `reviewer.s@example.test` and the corresponding locally configured seed password. Browser authentication E2E uses `SEED_REQUESTER_A_PASSWORD`; if it is unset, that one credential-dependent browser test is reported as skipped. Use fake data only; no real member credentials are expected in this project.
 
-Prisma Client is generated automatically before the server starts, before the seed runs, before server integration-test migrations, and during the build. A fresh clone does not need a build step before seeding or starting the application.
+Prisma Client is generated automatically before the server starts, before the seed runs, before server integration-test migrations, and during the build. A fresh clone does not need a build step before seeding or starting the application. The authentication feature uses Argon2id seed hashes, an opaque HTTP-only cookie with an absolute 8-hour lifetime, server-stored token hashes, and session-bound CSRF on logout. Public-login rate limiting remains a release prerequisite from the SDS and must be implemented and verified before deployment.
 
 ## Project documents
 
