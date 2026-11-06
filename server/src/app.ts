@@ -1,8 +1,11 @@
 import cors from "cors";
-import express, { type Express } from "express";
+import express, { type ErrorRequestHandler, type Express } from "express";
+import type { PrismaClient } from "./generated/prisma/client.js";
+import { registerSessionRoutes } from "./auth/routes.js";
 
 export interface AppDependencies {
   checkDatabase?: () => Promise<void>;
+  prisma?: PrismaClient;
   uiOrigin?: string;
 }
 
@@ -38,6 +41,14 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   }));
   app.use(express.json({ limit: "32kb" }));
 
+  if (dependencies.prisma) {
+    registerSessionRoutes(app, dependencies.prisma, uiOrigin);
+  } else {
+    app.all("/api/session", (_request, response) => {
+      response.status(503).json({ error: { code: "SERVICE_UNAVAILABLE", message: "Authentication is unavailable." } });
+    });
+  }
+
   app.get("/api/health", (_request, response) => {
     response.status(200).json({ service: "workflow-approval-api", status: "ok" });
   });
@@ -55,6 +66,26 @@ export function createApp(dependencies: AppDependencies = {}): Express {
       response.status(503).json({ service: "workflow-approval-api", status: "unavailable" });
     }
   });
+
+  const handleErrors: ErrorRequestHandler = (error: unknown, _request, response, next) => {
+    if (response.headersSent) {
+      next(error);
+      return;
+    }
+    const type = typeof error === "object" && error !== null && "type" in error
+      ? (error as { type?: unknown }).type
+      : undefined;
+    if (type === "entity.parse.failed") {
+      response.status(400).json({ error: { code: "INVALID_REQUEST", message: "Request body is not valid JSON." } });
+      return;
+    }
+    if (type === "entity.too.large") {
+      response.status(413).json({ error: { code: "REQUEST_TOO_LARGE", message: "Request body exceeds the 32 KiB limit." } });
+      return;
+    }
+    response.status(500).json({ error: { code: "INTERNAL_ERROR", message: "The request could not be completed." } });
+  };
+  app.use(handleErrors);
 
   return app;
 }

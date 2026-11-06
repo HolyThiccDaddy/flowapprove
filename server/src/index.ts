@@ -10,6 +10,7 @@ if (!Number.isSafeInteger(port) || port < 1 || port > 65_535) {
 }
 
 const app = createApp({
+  prisma,
   checkDatabase: async () => {
     await prisma.$queryRaw`SELECT 1`;
   },
